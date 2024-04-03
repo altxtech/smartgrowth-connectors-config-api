@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"fmt"
 	"smartgrowth-connectors/configapi/model"
 	"time"
 
@@ -21,6 +22,15 @@ func NewInMemoryDB() (Database, error) {
 }
 
 // User
+func (db *inMemoryDB) GetUserBySub(sub string) (model.User, error) {
+	for _, val := range db.users {
+		if val.Sub == sub {
+			return val, nil
+		}
+	}
+	var result model.User
+	return result, fmt.Errorf("User with sub %s not found", sub)
+}
 func (db *inMemoryDB) InsertUser(u model.User) (model.User, error) {
 
 	var result model.User

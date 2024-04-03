@@ -6,8 +6,7 @@ import (
 
 type Database interface {
 	// Users
+	GetUserBySub(sub string) (model.User, error)
 	InsertUser(model.User) (model.User, error)
 
-	// Sources
-	ListSources() ([]model.Source, error)
 }

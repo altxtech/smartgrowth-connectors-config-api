@@ -7,22 +7,29 @@ import (
 )
 
 type Controller struct {
-	database database.Database 
+	db database.Database
+	User *model.User
 }
 
-func NewController(db database.Database) (*Controller, error) {
-	return &Controller{db}, nil
+func NewController(db database.Database, user *model.User) (*Controller, error) {
+	return &Controller{db, user}, nil
 }
 
-// Sources
-func (c *Controller) ListSources() ([]model.Source, error){
+func (ctr *Controller) AsUser(sub string) (*Controller, error) {
 
-	var result []model.Source
+	// New Controller
+	var newCtr *Controller 
 
-	result, err := c.database.ListSources()
+	// Fetch user from database
+	user, err := ctr.db.GetUserBySub(sub)
 	if err != nil {
-		return result, fmt.Errorf("Failed to fetch from database: %v", err)
+		return newCtr, fmt.Errorf("Error fetching user with sub %s from db: %v", sub, err)
 	}
 
-	return result, nil
+	newCtr, err = NewController(ctr.db, &user)
+	if err != nil {
+		return newCtr, fmt.Errorf("Error creating user controller: %v", err)
+	}
+
+	return newCtr, nil
 }
