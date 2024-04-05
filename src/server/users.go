@@ -12,7 +12,7 @@ type CreateUserRequest struct {
 	Name string `json:"name" firestore:"name"`
 	Email string `json:"email" firestore:"email"`
 	Sub string `json:"sub" firestore:"sub"`
-	AppRoles []string `json:"app_roles" firestore:"app_roles"`
+	AppRole string `json:"app_role" firestore:"app_role"`
 }
 type UpdateUserRequest struct {
 	Name string `json:"name" firestore:"name"`
@@ -37,7 +37,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	createdUser, err := ctr.CreateUser(request.Name, request.Email, request.Sub, request.AppRoles)
+	createdUser, err := ctr.CreateUser(request.Name, request.Email, request.Sub, request.AppRole)
 	if err != nil {
 		errorResponse(c, http.StatusBadRequest, fmt.Sprintf("Error creating user: %v", err))
 	}

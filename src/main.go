@@ -23,7 +23,7 @@ func main(){
 
 
 	// Configure controller
-	controller, err := controller.NewController(db)
+	controller, err := controller.NewController(db, nil)
 	if err != nil {
 		log.Fatalf("Failed to initialize controller: %v", err)
 	}

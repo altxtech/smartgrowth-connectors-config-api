@@ -31,6 +31,15 @@ func (db *inMemoryDB) GetUserBySub(sub string) (model.User, error) {
 	var result model.User
 	return result, fmt.Errorf("User with sub %s not found", sub)
 }
+
+func (db *inMemoryDB) GetUserById(id string) (model.User, error) {
+	if val, ok := db.users[id]; ok {
+		return val, nil
+	}
+	var result model.User
+	return result, fmt.Errorf("User with id %s not found", id)
+}
+
 func (db *inMemoryDB) InsertUser(u model.User) (model.User, error) {
 
 	var result model.User
@@ -48,6 +57,46 @@ func (db *inMemoryDB) InsertUser(u model.User) (model.User, error) {
 
 	db.users[id] = u
 	return u, nil
+}
+
+func (db *inMemoryDB) ListUsers(offset int, limit int) ([]model.User, error) {
+	
+	var result []model.User
+	for _, value := range db.users {
+		result = append(result, value)
+	}
+
+	return result, nil
+}
+
+func (db *inMemoryDB) UpdateUser(id string, u model.User) (model.User, error) {
+	
+	var result model.User
+
+	// User should exist
+	if _, ok := db.users[id]; !ok {
+		return result, errors.New("User not found")
+	}
+
+	u.ID = id
+	u.UpdatedAt = time.Now()
+
+	db.users[id] = u
+	return u, nil
+}
+
+func (db *inMemoryDB) DeleteUserById(id string) (model.User, error) {
+	
+	var result model.User
+
+	// User should exist
+	if _, ok := db.users[id]; !ok {
+		return result, errors.New("User not found")
+	}
+
+	result = db.users[id]
+	delete(db.users, id)
+	return result, nil
 }
 
 func (db *inMemoryDB) ListSources() ([]model.Source, error) {
