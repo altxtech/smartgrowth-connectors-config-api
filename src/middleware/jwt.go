@@ -19,12 +19,13 @@ type CustomClaims struct {
 	Scope string `json:"scope"`
 	Sub string `json:"sub"`
 }
+
 // Implement the validator.CustomClaims interface
-func (c CustomClaims) Validate(context.Context) error {
+func (c *CustomClaims) Validate(context.Context) error {
 	return nil
 }
 func NewCustomClaims() validator.CustomClaims{
-	return CustomClaims{}
+	return &CustomClaims{}
 }
 
 // Errors
@@ -81,7 +82,7 @@ func EnsureValidToken(issDomain string, identifier string) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, error)
 			return
 		}
-		customClaims, ok := claims.CustomClaims.(CustomClaims)
+		customClaims, ok := claims.CustomClaims.(*CustomClaims)
 		if !ok {
 			error := AuthError{fmt.Sprintf("Invalid Claims: %v", err)}
 			c.AbortWithStatusJSON(http.StatusUnauthorized, error)

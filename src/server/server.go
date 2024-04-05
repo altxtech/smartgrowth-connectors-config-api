@@ -29,6 +29,14 @@ func NewServer(controller *controller.Controller, authDomain string, identifier 
 	server.router.Use(authMiddleware)
 	server.router.Use(server.setUser)
 
+	// Add routes
+	server.router.POST("/users", CreateUser)
+	server.router.GET("/users", ListUsers)
+	server.router.GET("/users/:id", GetUser)
+	server.router.PUT("/users/:id", UpdateUser)
+	server.router.DELETE("/users/:id", DeleteUser)
+
+
 	return server, nil
 } 
 

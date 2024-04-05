@@ -1,10 +1,12 @@
 package main
 
 import (
+	"os"
 	"log"
 	"smartgrowth-connectors/configapi/controller"
 	"smartgrowth-connectors/configapi/database"
 	"smartgrowth-connectors/configapi/server"
+	"smartgrowth-connectors/configapi/scripts"
 )
 
 /*
@@ -16,10 +18,25 @@ Using enviroment variables to initialize the database, configure the controller,
 func main(){
 
 	// Initialize database
-	db, err := database.NewInMemoryDB()
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	// If in testing mode, use in memory database
+	var db database.Database
+	if os.Getenv("ENV") == "LOCAL" {
+		var err error
+		db, err = database.NewInMemoryDB()
+
+		// Seed database with inital database
+		err = scripts.SeedDatabase(db)
+		if err != nil {
+			log.Fatalf("Failed to seed in memory database: %v", err)
+		}
+
+		if err != nil {
+			log.Fatalf("Failed to initialize in memory database: %v", err)
+		}
+	} else {
+		log.Fatalf("Production features not implemented yet")
 	}
+		
 
 
 	// Configure controller
@@ -28,7 +45,7 @@ func main(){
 		log.Fatalf("Failed to initialize controller: %v", err)
 	}
 	
-	server, err := server.NewServer(controller, "dev-sn5f570cadx2zciy", "https://api.connectors.smartgrowth.consulting")
+	server, err := server.NewServer(controller, os.Getenv("AUTH0_DOMAIN"), os.Getenv("AUTH0_IDENTIFIER"))
 	if err != nil {
 		log.Fatalf("Error initializing server: %v", err)
 	}

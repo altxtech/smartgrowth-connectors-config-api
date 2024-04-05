@@ -18,7 +18,7 @@ type UpdateUserRequest struct {
 	Name string `json:"name" firestore:"name"`
 	Email string `json:"email" firestore:"email"`
 	Sub string `json:"sub" firestore:"sub"`
-	AppRoles []string `json:"app_roles" firestore:"app_roles"`
+	AppRole string `json:"app_role" firestore:"app_role"`
 }
 
 func CreateUser(c *gin.Context) {
@@ -31,7 +31,7 @@ func CreateUser(c *gin.Context) {
 	}
 
 	var request CreateUserRequest
-	err = c.ShouldBindJSON(request)
+	err = c.ShouldBindJSON(&request)
 	if err != nil {
 		errorResponse(c, http.StatusBadRequest, fmt.Sprintf("Invalid request: %v", err))
 		return
@@ -112,11 +112,11 @@ func  UpdateUser(c *gin.Context) {
 	}
 
 	var request UpdateUserRequest
-	c.ShouldBindJSON(request)
+	c.ShouldBindJSON(&request)
 
 	userId := c.Param("id")
 
-	updatedUser, err :=  ctr.UpdateUser(userId, request.Name, request.Email, request.Sub, request.AppRoles)
+	updatedUser, err :=  ctr.UpdateUser(userId, request.Name, request.Email, request.Sub, request.AppRole)
 	if err != nil {
 		message := fmt.Sprintf("Error updating user with id %s: %v", userId, err) 
 		errorResponse(c, http.StatusBadRequest, message)

@@ -82,7 +82,7 @@ func (cont *Controller) GetUser(userId string) (model.User, error) {
 	return user, nil
 }
 
-func (cont *Controller) UpdateUser(userId string, name string, email string, subject string, appRoles [] string) (model.User, error) {
+func (cont *Controller) UpdateUser(userId string, name string, email string, subject string, appRole string) (model.User, error) {
 
 	var createdUser model.User
 
@@ -98,6 +98,13 @@ func (cont *Controller) UpdateUser(userId string, name string, email string, sub
 		}
 	default:
 		return createdUser, errors.New("Invalid AppRole")
+	}
+
+	// Update user in database
+	updatedUser := model.NewUser(name, email, subject, appRole)
+	createdUser, err := cont.db.UpdateUser(userId, updatedUser)
+	if err != nil {
+		return createdUser, fmt.Errorf("Error updating user in database: %v", err)
 	}
 
 	return createdUser, nil
