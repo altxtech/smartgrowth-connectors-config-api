@@ -11,13 +11,13 @@ import (
 
 type inMemoryDB struct {
 	users map[string]model.User
-	sources map[string]model.Source
+	workspaces map[string]model.Workspace
 }
 
 func NewInMemoryDB() (Database, error) {
 	return &inMemoryDB {
 		users: map[string]model.User{},
-		sources: map[string]model.Source{},
+		workspaces: map[string]model.Workspace{},
 	}, nil
 }
 
@@ -99,12 +99,68 @@ func (db *inMemoryDB) DeleteUserById(id string) (model.User, error) {
 	return result, nil
 }
 
-func (db *inMemoryDB) ListSources() ([]model.Source, error) {
-	
-	var result []model.Source
-	for _, value := range db.sources {
-		result = append(result, value)
+// Workspaces
+func (db *inMemoryDB) InsertWorkspace(w model.Workspace) (model.Workspace, error) {
+
+	var idW model.Workspace
+
+	// Workspace should not be identified
+	if w.ID != "" {
+		return idW, errors.New("Workspace should not be identified")
 	}
 
-	return result, nil
+	id := uuid.NewString()
+	w.ID = id
+
+
+	db.workspaces[id] = w
+	return w, nil
+} 
+
+func (db *inMemoryDB) ListWorkspasesForPrincipal(principal string) ([]model.Workspace, error) {
+
+	results := []model.Workspace{}
+
+	for _, val := range db.workspaces {
+		if val.ViewableBy(principal) {
+			results = append(results, val)
+		}
+	}
+
+	return results, nil
+}
+
+func (db  *inMemoryDB) GetWorkspaceByID(id string) (model.Workspace, error) {
+	
+	workspace := db.workspaces[id]
+	return workspace, nil
+}
+
+func (db *inMemoryDB) UpdateWorkspace(w model.Workspace) (model.Workspace, error) {
+
+	var upW model.Workspace
+
+	// Workspace should be identified
+	if w.ID == "" {
+		return upW, errors.New("Workspace should be identified")
+	}
+
+	// Workpace should exist
+	_, ok := db.workspaces[w.ID]
+	if !ok {
+		return upW, fmt.Errorf("Workspace with id %s does not exist", w.ID) 
+	}
+
+	db.workspaces[w.ID] = w
+
+	return w, nil
+} 
+
+func (db *inMemoryDB) DeleteWorkspaceByID(id string) (model.Workspace, error) {
+	//  Should exists
+	var deleteResult model.Workspace
+	_, ok := db.workspaces[id]
+	if !ok {
+		return deleteResult, errors.New("Workspace does not exists")
+	}
 }
