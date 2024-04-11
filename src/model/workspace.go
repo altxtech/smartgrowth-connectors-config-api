@@ -5,26 +5,6 @@ import (
 	"time"
 )
 
-// User
-type User struct {
-	ID string `json:"id" firestore:"id"` // "" for unidentified
-	Name string `json:"name" firestore:"name"`
-	Email string `json:"email" firestore:"email"`
-	Sub string `json:"sub" firestore:"sub"`
-	AppRole string `json:"app_role" firestore:"app_role"`
-	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
-}
-
-func NewUser(name string, email string, sub string, appRole string) User {
-	// Creaates new user without an identity (attributed at datadabase insertion)
-	return User{ "", name, email, sub, appRole, time.Now(), time.Now() }
-}
-
-func (u User) HasIdentity() bool {
-	return u.ID != ""
-}
-
 type Workspace struct {
 	ID string `json:"id" firestore:"id"`
 	Name string `json:"name" firestore:"name"`
@@ -41,11 +21,11 @@ func NewWorkspace(name string, perms []WorkspacePermission) (Workspace, error) {
 	for idx, perm := range perms {
 		err := perm.Validate()
 		if err != nil {
-			return workspace, fmt.Errorf("Invalid permission at index %i: %v", idx, err)
+			return workspace, fmt.Errorf("Invalid permission at index %d: %v", idx, err)
 		}
 	}
 
-	return nil
+	return workspace, nil
 }
 
 func (w Workspace) ViewableBy(principal string) bool {
@@ -80,6 +60,7 @@ func (w Workspace) EditableBy(principal string) bool {
 	}
 	return false
 }
+
 type WorkspacePermission struct {
 	Principal string `json:"user" firestore:"user"`
 	Role string `json:"role" firestore:"role"` // "admin",  "editor", "viewer"
@@ -88,34 +69,26 @@ type WorkspacePermission struct {
 func NewWorkspacePermission(userEmail string, role string) (WorkspacePermission, error) {
 	
 	perm := WorkspacePermission{ userEmail, role }
-	if perm.Validate() != nil {
+	err := perm.Validate(); if err != nil {
 		return perm, fmt.Errorf("Invalid permission: %v", err)
 	}
 
 	return perm, nil
 }
 
-func (p WorkspacePermission) Validate() err {
+func (p WorkspacePermission) Validate() error {
 
 	// This validation methods exists because Workspace permissions won't always be created by
 	// the constructor method. Sometimes, they will be marshalled from JSON.
 	// In that case, we'll need to parse them first and then validate it
 	
 	// Checks if the role is valid
-	if role != "viewer" && role != "editor" && role != "owner" {
-		return fmt.Errorf("Invalid role %s. Valid roles are \"viewer\", \"editor\" and  \"owner\""))
+	if p.Role != "viewer" && p.Role != "editor" && p.Role != "owner" {
+		return fmt.Errorf("Invalid role %s. Valid roles are \"viewer\", \"editor\" and  \"owner\"", p.Role)
 	}
 
 	// NOTE: I thought about addind a validation to check if user principal is existing BUT
 	// this method should be database agnostic. So this check should be done at db insert level
 
 	return nil
-}
-
-type Source struct {
-	ID string `json:"id" firestore:"id"`
-	Name string `json:"name" firestore:"name"` 
-}
-
-type Destination struct {
 }
