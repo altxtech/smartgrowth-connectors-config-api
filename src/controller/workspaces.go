@@ -28,7 +28,7 @@ func (ctr *Controller) CreateWorkspace(name string, permissions []model.Workspac
 
 	workspace, err = ctr.db.InsertWorkspace(workspace)
 	if err != nil {
-		fmt.Errorf("Error inserting workspace into database: %v", err)
+		return workspace, fmt.Errorf("Error inserting workspace into database: %v", err)
 	}
 
 	return workspace, nil
@@ -58,7 +58,7 @@ func (ctr *Controller) ListWorkspaces(offset int, limit int) ([]model.Workspace,
 	
 	workspaces, err := ctr.db.ListWorkspacesForPrincipal(ctr.User.Email)
 	if err != nil {
-		return workspaces, fmt.Errorf("Error reading workspaces from database: %v")
+		return workspaces, fmt.Errorf("Error reading workspaces from database: %v", err)
 	}
 
 	return workspaces,  nil
@@ -111,7 +111,7 @@ func (ctr *Controller) UpdateWorkspace(id string, name string, permissions []mod
 
 	workspace, err = ctr.db.UpdateWorkspace(workspace)
 	if err != nil {
-		fmt.Errorf("Error inserting workspace into database: %v", err)
+		return workspace, fmt.Errorf("Error inserting workspace into database: %v", err)
 	}
 
 	return workspace, nil
@@ -132,7 +132,7 @@ func (ctr *Controller) DeleteWorkspace(id string) (model.Workspace, error) {
 
 	deletedWorkspace, err := ctr.db.DeleteWorkspaceByID(id)
 	if err != nil {
-		return deletedWorkspace, fmt.Errof("Error deleting workspace from database: %v")
+		return deletedWorkspace, fmt.Errorf("Error deleting workspace from database: %v", err)
 	}
 
 	return deletedWorkspace, nil

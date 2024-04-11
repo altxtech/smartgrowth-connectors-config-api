@@ -117,7 +117,7 @@ func (db *inMemoryDB) InsertWorkspace(w model.Workspace) (model.Workspace, error
 	return w, nil
 } 
 
-func (db *inMemoryDB) ListWorkspasesForPrincipal(principal string) ([]model.Workspace, error) {
+func (db *inMemoryDB) ListWorkspacesForPrincipal(principal string) ([]model.Workspace, error) {
 
 	results := []model.Workspace{}
 
@@ -158,9 +158,11 @@ func (db *inMemoryDB) UpdateWorkspace(w model.Workspace) (model.Workspace, error
 
 func (db *inMemoryDB) DeleteWorkspaceByID(id string) (model.Workspace, error) {
 	//  Should exists
-	var deleteResult model.Workspace
-	_, ok := db.workspaces[id]
+	deleteResult, ok := db.workspaces[id]
 	if !ok {
 		return deleteResult, errors.New("Workspace does not exists")
 	}
+
+	delete(db.workspaces, id)
+	return deleteResult, nil
 }
