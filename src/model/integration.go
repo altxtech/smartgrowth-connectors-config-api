@@ -61,15 +61,15 @@ func (c IntegrationConfig) Validate(def ConfigurationSchema) error {
 	// Checks if the configuration matches the schema
 
 	for _, field := range def {
-		value, ok := c[field.Name]
+		value, ok := c[field.Label]
 		if !ok {
 			if field.Required {
-				return fmt.Errorf("Field %s is required", field.Name)
+				return fmt.Errorf("Field %s is required", field.Label)
 			}
 		} else {
 			err := c.ValidateValue(field, value)
 			if err != nil {
-				return fmt.Errorf("Field %s is invalid: %v", field.Name, err)
+				return fmt.Errorf("Field %s is invalid: %v", field.Label, err)
 			}
 		}
 	
@@ -78,7 +78,7 @@ func (c IntegrationConfig) Validate(def ConfigurationSchema) error {
 	return nil
 }
 
-func (c IntegrationConfig) ValidateValue(f ConfigurationSchemaField, value interface{}) error {
+func (c IntegrationConfig) ValidateValue(f SchemaField, value interface{}) error {
 	
 	if !f.Array {
 		switch f.Type {
@@ -123,7 +123,7 @@ func (c IntegrationConfig) ValidateValue(f ConfigurationSchemaField, value inter
 			}
 		} else {
 			// Create a non-array copy of this field to evaluate each item
-			nonArrayField := SchemaField{ f.Name, f.Type, f.Required, false, f.Fields }
+			nonArrayField := SchemaField{ f.Label, f.Type, f.Required, false, f.Fields }
 			for _, item := range items {
 				err := c.ValidateValue(nonArrayField, item)
 				if err != nil {
