@@ -59,7 +59,6 @@ func NewIntegrationConfig(args map[string]interface{}, schema ConfigurationSchem
 
 func (c IntegrationConfig) Validate(def ConfigurationSchema) error {
 	// Checks if the configuration matches the schema
-
 	for _, field := range def {
 		value, ok := c[field.Label]
 		if !ok {
@@ -79,6 +78,8 @@ func (c IntegrationConfig) Validate(def ConfigurationSchema) error {
 }
 
 func (c IntegrationConfig) ValidateValue(f SchemaField, value interface{}) error {
+
+	// Note. This method CANNOT check if a required field is missing.
 	
 	if !f.Array {
 		switch f.Type {
@@ -87,10 +88,20 @@ func (c IntegrationConfig) ValidateValue(f SchemaField, value interface{}) error
 			if !ok {
 				return fmt.Errorf("Expected string, got %T", value)
 			}
-		case "number":
+		case "int":
+			_, ok := value.(int)
+			if !ok {
+				return fmt.Errorf("Expected int, got %T", value)
+			}
+		case "float":
 			_, ok := value.(float64)
 			if !ok {
-				return fmt.Errorf("Expected number, got %T", value)
+				return fmt.Errorf("Expected float, got %T", value)
+			}
+		case "decimal":
+			_, ok := value.(float64)
+			if !ok {
+				return fmt.Errorf("Expected decimal, got %T", value)
 			}
 		case "boolean":
 			_, ok := value.(bool)
@@ -108,30 +119,33 @@ func (c IntegrationConfig) ValidateValue(f SchemaField, value interface{}) error
 			}
 		default:
 			return fmt.Errorf("Invalid type %s", f.Type)
-	}
+		}
 
 	} else {
-		// If array, value must be an Array
-		items, ok := value.([]interface{})
+
+		// Check it is an Array
+		_, ok := value.([]interface{})
 		if !ok {
 			return fmt.Errorf("Expected array, got %T", value)
 		}
 
-		if len(items) == 0 {
-			if f.Required {
-				return fmt.Errorf("Array is required")
-			}
-		} else {
-			// Create a non-array copy of this field to evaluate each item
-			nonArrayField := SchemaField{ f.Label, f.Type, f.Required, false, f.Fields }
-			for _, item := range items {
-				err := c.ValidateValue(nonArrayField, item)
-				if err != nil {
-					return fmt.Errorf("Invalid array item: %v", err)
-				}
+		// Validate length
+		if f.Required && len(value.([]interface{})) == 0 {
+			return fmt.Errorf("Array %s is required", f.Label)
+		}
+
+		// Validate each element
+		itemFields := SchemaField{f.Label, f.Type, false, false, f.Fields}
+		for _, v := range value.([]interface{}) {
+			err := c.ValidateValue(itemFields, v)
+			if err != nil {
+				return fmt.Errorf("Array %s is invalid: %v", f.Label, err)
 			}
 		}
+
 	}
 
 	return nil
 }
+
+

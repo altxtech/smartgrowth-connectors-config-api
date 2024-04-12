@@ -27,12 +27,27 @@ func TestInvalidType(t *testing.T) {
 	}
 }
 
+func TestNameCollision(t *testing.T) {
+	
+	schema := ConfigurationSchema{
+		SchemaField{"field1", "string", false, false, nil},
+		SchemaField{"field1", "int", false, false, nil},
+	}
+
+	_, err := NewIntegrationDefinition("name", "source", schema)
+	if err == nil {
+		t.Errorf("Expected error, got nil")
+	}
+}
+
 func TestValidFlatSchema(t *testing.T) {
 
 	schema := ConfigurationSchema{
 		SchemaField{"field1", "string", false, false, nil},
-		SchemaField{"field2", "number", false, false, nil},
-		SchemaField{"field3", "boolean", false, false, nil},
+		SchemaField{"field2", "int", false, false, nil},
+		SchemaField{"field3", "float", false, false, nil},
+		SchemaField{"field4", "decimal", false, false, nil},
+		SchemaField{"field5", "boolean", false, false, nil},
 	}
 
 	_, err := NewIntegrationDefinition("name", "source", schema)
@@ -56,8 +71,10 @@ func TestValidNestedObject(t *testing.T) {
 	schema := ConfigurationSchema{
 		SchemaField{"field1", "object", false, false, ConfigurationSchema{
 			SchemaField{"field1.1", "string", false, false, nil},
-			SchemaField{"field1.2", "number", false, false, nil},
-			SchemaField{"field1.3", "boolean", false, false, nil},
+			SchemaField{"field1.2", "int", false, false, nil},
+			SchemaField{"field1.3", "float", false, false, nil},
+			SchemaField{"field1.4", "decimal", false, false, nil},
+			SchemaField{"field1.5", "boolean", false, false, nil},
 		}},
 	}
 
@@ -71,7 +88,7 @@ func TestInvalidNestedObject(t *testing.T) {
 	schema := ConfigurationSchema{
 		SchemaField{"field1", "object", false, false, ConfigurationSchema{
 			SchemaField{"field1.1", "string", false, false, nil},
-			SchemaField{"field1.2", "number", false, false, nil},
+			SchemaField{"field1.2", "int", false, false, nil},
 			SchemaField{"field1.3", "this type is invalid", false, false, nil},
 		}},
 	}

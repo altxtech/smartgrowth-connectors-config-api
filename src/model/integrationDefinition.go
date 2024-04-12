@@ -1,8 +1,8 @@
 package model
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 type IntegrationDefinition struct {
@@ -45,7 +45,16 @@ func (s ConfigurationSchema) Validate(remainingDepth  int) error {
 		return errors.New("Max depth exceeded")
 	}
 
+	// There should be no name  collisions
+	names := make(map[string]bool)
+
 	for _, field := range s {
+
+		if _, ok := names[field.Label]; ok {
+			return fmt.Errorf("Field name %s is duplicated", field.Label)
+		}
+		names[field.Label] = true
+
 		err := field.Validate(remainingDepth)
 		if err != nil {
 			return fmt.Errorf("Invalid field: %v", err)
@@ -57,16 +66,25 @@ func (s ConfigurationSchema) Validate(remainingDepth  int) error {
 
 type SchemaField struct {
 	Label string `json:"label" firestore:"label"`
-	Type string  `json:"type" firestore:"type"`
+	Type string  `json:"type" firestore:"type"` // "string", "int", "float",  "decimal", "boolean" or "object"
 	Required bool  `json:"required" firestore:"required"`
 	Array bool `json:"array" firesotre:"array"`
 	Fields ConfigurationSchema `json:"fields" firestore:"fields"` // Only for "object" types
 }
 
 func (f SchemaField) Validate(remainingDepth int)  error {
-	
-	if f.Type != "string" && f.Type != "number" && f.Type != "boolean" && f.Type != "object" {
-		return fmt.Errorf("Invalid type %s. Valid types are \"string\", \"number\", \"boolean\" and \"object\"", f.Type)
+
+	validTypes := map[string]bool{
+		"string": true,
+		"int": true,
+		"float": true,
+		"decimal": true,
+		"boolean": true,
+		"object": true,
+	}
+	_, ok := validTypes[f.Type]
+	if !ok {
+		return fmt.Errorf("Invalid type %s", f.Type)
 	}
 
 	if f.Type == "object" {
